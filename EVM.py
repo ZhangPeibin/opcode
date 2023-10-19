@@ -138,6 +138,48 @@ class EVM :
             x = x | ~((1 << (8 * b)) - 1)  # 将 x 的剩余部分全部置1
         self.stack.append(x)
 
+    def lt(self):
+        if len(self.stack) < 2:
+            raise Exception('Stack underflow')
+        a = self.stack.pop()
+        b = self.stack.pop()
+        self.stack.append(int(a<b))
+
+    def gt(self):
+        if len(self.stack) < 2:
+            raise Exception('Stack underflow')
+        a = self.stack.pop()
+        b = self.stack.pop()
+        self.stack.append(int(a>b))
+
+    def eq(self):
+        if len(self.stack) < 2:
+            raise Exception('Stack underflow')
+        a = self.stack.pop()
+        b = self.stack.pop()
+        self.stack.append(int(a==b))
+    
+    def slt(self):
+        if len(self.stack) < 2:
+            raise Exception('Stack underflow')
+        a = self.stack.pop()
+        b = self.stack.pop()
+        self.stack.append(int(a<b))
+
+    def sgt(self):
+        if len(self.stack) < 2:
+            raise Exception('Stack underflow')
+        a = self.stack.pop()
+        b = self.stack.pop()
+        self.stack.append(int(a>b))
+
+    def isZero(self):
+        if len(self.stack) < 1:
+            raise Exception('Stack underflow')
+        a = self.stack.pop()
+        self.stack.append(int(a == 0))
+
+
     def run(self):
         while self.pc < len(self.code):
             op = self.next_instruction()  
@@ -169,16 +211,27 @@ class EVM :
             elif op == Code.EXP:
                 self.exp()
             elif op == Code.SIGNEXTEND:
-                self.signextend()                    
+                self.signextend()    
+            elif op == Code.LT:
+                self.lt()
+            elif op == Code.GT:
+                self.gt()
+            elif op == Code.SLT:
+                self.slt()
+            elif op == Code.SGT:
+                self.sgt()
+            elif op == Code.EQ:
+                self.eq()
+            elif op == Code.ISZERO:
+                self.isZero()
 
-# code = b'\x60\x01\x5F\x50\x50'
-# code = b'\x60\x03\x60\x06\x01'
+            
 
-# code = b'\x60\x02\x60\x04\x0A'
-# evm = EVM(code=code)
-# evm.run()
+code = b'\x60\x02\x60\x04\x0A'
+evm = EVM(code=code)
+evm.run()
 
-# print(evm.stack)
+print(evm.stack)
 
 
 
