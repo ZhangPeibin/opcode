@@ -68,9 +68,75 @@ class EVM :
         elif a == b:
             self.stack.append(1)
         else:
-            res = a // b 
+            res = a // b % (2 *256)
             self.stack.append(res)
 
+
+    def sdiv(self):
+        if len(self.stack) < 2 :
+            raise Exception("Stack underflow")
+        a = self.stack.pop()
+        b = self.stack.pop()
+        res = a // b % (2**256) if b!=0 else 0
+        self.stack.append(res)
+
+
+    def mode(self):
+        if len(self.stack) < 2:
+            raise Exception("Stack underflow")
+        a = self.stack.pop()
+        b = self.stack.pop()
+        res = a % b if b!=0 else 0
+        self.stack.append(res)
+
+
+    def smode(self):
+        if len(self.stack) < 2:
+            raise Exception("Stack underflow")
+        a = self.stack.pop()
+        b = self.stack.pop()
+        res = a % b  if b !=0 else 0
+        self.stack.append(res)
+
+    def addmode(self):
+        if len(self.stack) < 3:
+            raise Exception("Stack underflow")
+        a = self.stack.pop()
+        b = self.stack.pop()
+        c = self.stack.pop()
+        res = (a + b)  % c  if c!=0 else 0
+        self.stack.append(res)
+
+    def mulmode(self):
+        if len(self.stack ) < 3:
+            raise Exception("stack underflow")
+        a = self.stack.pop()
+        b = self.stack.pop()
+        c = self.stack.pop()
+        res = ( a * b ) % c if c !=0 else 0
+        self.stack.append(res)
+
+    def exp(self):
+        if len(self.stack ) < 2:
+            raise Exception("stack underflow")
+        # 指数
+        a = self.stack.pop()
+        # 底数
+        b = self.stack.pop()
+        res = pow(a,b) %(2**256)
+        self.stack.append(res)
+
+    def signextend(self):
+        if len(self.stack) < 2:
+            raise Exception('Stack underflow')
+        b = self.stack.pop()
+        x = self.stack.pop()
+        if b < 32: # 如果b>=32，则不需要扩展
+            sign_bit = 1 << (8 * b - 1) # b 字节的最高位（符号位）对应的掩码值，将用来检测 x 的符号位是否为1
+        x = x & ((1 << (8 * b)) - 1)  # 对 x 进行掩码操作，保留 x 的前 b+1 字节的值，其余字节全部置0
+        if x & sign_bit:  # 检查 x 的符号位是否为1
+            x = x | ~((1 << (8 * b)) - 1)  # 将 x 的剩余部分全部置1
+        self.stack.append(x)
 
     def run(self):
         while self.pc < len(self.code):
@@ -90,16 +156,29 @@ class EVM :
                 self.mul()
             elif op == Code.DIV:
                 self.div()
-
-                                   
+            elif op == Code.SDIV:
+                self.sdiv()
+            elif op == Code.MOD:
+                self.mode()
+            elif op == Code.SMOD:
+                self.smode()
+            elif op == Code.ADDMOD:
+                self.addmode()
+            elif op == Code.MULMOD:
+                self.mulmode()
+            elif op == Code.EXP:
+                self.exp()
+            elif op == Code.SIGNEXTEND:
+                self.signextend()                    
 
 # code = b'\x60\x01\x5F\x50\x50'
 # code = b'\x60\x03\x60\x06\x01'
-code = b'\x60\x03\x60\x06\x03'
-evm = EVM(code=code)
-evm.run()
 
-print(evm.stack)
+# code = b'\x60\x02\x60\x04\x0A'
+# evm = EVM(code=code)
+# evm.run()
+
+# print(evm.stack)
 
 
 
