@@ -8,6 +8,7 @@ class EVM :
         self.code = code  #初始化字节码， bytes 对象
         self.pc = 0  #初始化程序计数器为0
         self.stack = [] #初始化堆栈
+        self.memory = bytearray() #初始化内存
 
     #获取下一个code指令
     def next_instruction(self):
@@ -247,6 +248,56 @@ class EVM :
 
         self.stack.append(res)
     
+    def pop(self):
+        if len(self.stack) < 1:
+            raise Exception("Stack underflow")
+        self.stack.pop()
+    
+    # 从stack 弹出2个数据，第一个数据是偏移量，第二个数据是value
+    # 将value存放在offset偏移量的位置
+    def mstore(self):
+        if len(self.stack) < 2 :
+            raise Exception("Stack underflow")
+        offset = self.stack.pop() #偏移字节
+        value = self.stack.pop() #值
+
+        if offset + 32 > 2**64-1:
+            raise Exception("invalid memory: store empty")
+        
+        # offset是起点.mstore每次存都是32个字节,所以后面还要加上32个字节
+        while len(self.memory) < (offset + 32):
+            self.memory.append(0)
+        v = value.to_bytes(32,'big')
+        self.memory[offset:offset+32] = v
+         
+
+    def mstore8(self):
+        if len(self.stack) < 2 :
+            raise Exception("Stack underflow")
+        offset = self.stack.pop() #偏移字节
+        value = self.stack.pop() #值
+        if (offset + 32 )> (2**64-1):
+            raise Exception("invalid memory: store empty")
+        
+        while len(self.memory) < offset + 32:
+            self.memory.append(0)
+
+
+        self.memory[offset] = value & 0xFF
+        
+    def mload(self):
+        if len(self.stack) < 1:
+            raise Exception("Stack underflow")
+
+        offset = self.stack.pop()
+
+        while len(self.memory) < offset + 32:
+            self.memory.append(0)
+        value = int.from_bytes(self.memory[offset:offset+32],"big")
+        self.stack.append(value)
+
+    def msize(self):
+        self.stack.append(len(self.memory))
         
     def run(self):
         while self.pc < len(self.code):
@@ -308,14 +359,21 @@ class EVM :
                 self.byte()
             elif op == Code.SHA:
                 self.sha_op()
+            elif op == Code.POP:
+                self.pop()
+            elif op == Code.MSTORE:
+                self.mstore()
+            elif op == Code.MSTORE8:
+                self.mstore8()
+            elif op == Code.MLOAD:
+                self.mload()
+            elif op == Code.MSIZE:
+                self.msize()
 
             
 
-code = b'\x60\x02\x60\x01\x60\x01\x1b\x1b' # result is 8 
+# code = b'\x60\x02\x60\x01\x60\x01\x1b\x1b' # result is 8 
+code = b'\x60\x02\x60\x20\x52\x60\x20\x51' # result is 8 
 evm = EVM(code=code)
 evm.run()
-
 print(evm.stack)
-
-
-
