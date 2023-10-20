@@ -178,8 +178,76 @@ class EVM :
             raise Exception('Stack underflow')
         a = self.stack.pop()
         self.stack.append(int(a == 0))
+    
+    def and_op(self):
+        if len(self.stack) < 2:
+            raise Exception('Stack underflow')
+        a = self.stack.pop()
+        b = self.stack.pop()
+        self.stack.append( a & b )
+    
+    def or_op(self):
+        if len(self.stack) < 2:
+            raise Exception('Stack underflow')
+        a = self.stack.pop()
+        b = self.stack.pop()
+        self.stack.append( a | b )
 
+    def xor_op(self):
+        if len(self.stack) < 2:
+            raise Exception('Stack underflow')
+        a = self.stack.pop()
+        b = self.stack.pop()
+        self.stack.append( a ^ b )
 
+    def not_op(self):
+        if len(self.stack) < 1:
+            raise Exception('Stack underflow')
+        a = self.stack.pop()
+        self.stack.append( ~a % (2**256))
+
+    def shl_op(self):
+        if len(self.stack) < 1:
+            raise Exception("Stack underflow")
+
+        a = self.stack.pop()
+        b = self.stack.pop()
+
+        self.stack.append( a << b % (2*256))
+    
+    def shr_op(self):
+        if len(self.stack) < 2:
+            raise Exception("Stack underflow")
+
+        a = self.stack.pop()
+        b = self.stack.pop()
+
+        self.stack.append( a >> b % (2*256))
+
+    def sha_op(self):
+        if len(self.stack) < 2:
+            raise Exception("Stack underflow")
+
+        a = self.stack.pop()
+        b = self.stack.pop()
+
+        self.stack.append( a >> b % (2*256))
+
+    def byte(self):
+        if len(self.stack) < 2:
+            raise Exception("Stack underflow")
+
+        n = self.stack.pop()
+        v = self.stack.pop()
+
+        if n >= 32:
+            res =  0
+        else:
+            res = ( v // pow(256,31-n)) % 0xFF
+
+        self.stack.append(res)
+    
+        
     def run(self):
         while self.pc < len(self.code):
             op = self.next_instruction()  
@@ -224,10 +292,26 @@ class EVM :
                 self.eq()
             elif op == Code.ISZERO:
                 self.isZero()
+            elif op == Code.AND:
+                self.and_op()
+            elif op == Code.OR:
+                self.or_op()
+            elif op == Code.XOR:
+                self.xor_op()
+            elif op == Code.NOT:
+                self.not_op()
+            elif op == Code.SHL:
+                self.shl_op()
+            elif op == Code.SHR:
+                self.shr_op()
+            elif op == Code.BYTE:
+                self.byte()
+            elif op == Code.SHA:
+                self.sha_op()
 
             
 
-code = b'\x60\x02\x60\x04\x0A'
+code = b'\x60\x02\x60\x01\x60\x01\x1b\x1b' # result is 8 
 evm = EVM(code=code)
 evm.run()
 
