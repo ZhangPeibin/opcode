@@ -2,6 +2,7 @@
 
 #-----------------算数指令-----------------
 # 0x0 range - arithmetic ops.
+STOP = 0X00
 ADD = 0X01
 MUL = 0X02
 SUB = 0X03
@@ -41,8 +42,15 @@ MSTORE = 0X52
 MSTORE8 = 0X53
 SLOAD= 0x54
 SSTORE = 0x55
+JUMP = 0x56
+JUMPI = 0X57
+PC = 0X58
 MSIZE = 0x59
-
+GAS = 0X5a
+JUMPDEST = 0X5b
+TLOAD = 0x5c
+TSTORE = 0X5d
+MCOPY = 0X5e
 
 #-----------------PUSH 指令-----------------
 PUSH0 = 0x5f

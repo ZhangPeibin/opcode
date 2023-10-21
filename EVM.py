@@ -10,6 +10,20 @@ class EVM :
         self.stack = [] #初始化堆栈
         self.memory = bytearray() #初始化内存
         self.storage = {}
+        self.validJumDest = {} 
+        self.findValidJumpDestinations()
+    
+    def findValidJumpDestinations(self):
+        pc = 0 
+        while pc < len(self.code):
+            op = self.code[pc]
+            if op == Code.JUMPDEST:
+                self.validJumDest[pc] = True
+            elif op >= Code.PUSH1 and op <= Code.PUSH32:
+                pc += op- Code.PUSH1 +1
+            
+            pc+=1
+
 
     #获取下一个code指令
     def next_instruction(self):
@@ -314,6 +328,28 @@ class EVM :
         val = self.storage.get(loc,0)
         self.stack.append(val)
 
+    def jump(self):
+        if len(self.stack) < 1:
+            raise Exception("Stack underflow")
+        dest = self.stack.pop()
+        if dest not in self.validJumDest:
+            raise Exception("Invlid jump destination")
+        else: self.pc = dest
+    
+    def jumpi(self):
+        if len(self.stack ) < 2:
+            raise Exception("stack underflow")
+        pos = self.stack.pop()
+        cond = self.stack.pop()
+
+        if cond != 0:
+            if pos not in self.validJumDest:
+                raise Exception("Invalid jump destination")
+            else: self.pc = pos
+
+    #啥也不干的
+    def jumpdest(self):
+        pass 
         
     def run(self):
         while self.pc < len(self.code):
@@ -325,6 +361,9 @@ class EVM :
                 self.stack.append(0)
             elif op == Code.POP:
                 self.pop()
+            elif op == Code.STOP:
+                print("Program has been stopped")
+                break
             elif op == Code.ADD:
                 self.add()
             elif op == Code.SUB:
@@ -389,6 +428,12 @@ class EVM :
                 self.sload()
             elif op == Code.SSTORE:
                 self.sstore()
+            elif op == Code.JUMPDEST:
+                self.jumpdest()
+            elif op == Code.JUMP:
+                self.jump()
+            elif op == Code.JUMPI:
+                self.jumpi()
 
             
 
