@@ -9,6 +9,7 @@ class EVM :
         self.pc = 0  #初始化程序计数器为0
         self.stack = [] #初始化堆栈
         self.memory = bytearray() #初始化内存
+        self.storage = {}
 
     #获取下一个code指令
     def next_instruction(self):
@@ -298,6 +299,21 @@ class EVM :
 
     def msize(self):
         self.stack.append(len(self.memory))
+
+    def sstore(self):
+        if len(self.stack) < 2:
+            raise Exception("Stack underflow")
+        loc = self.stack.pop()
+        val = self.stack.pop()
+        self.storage[loc] = val
+    
+    def sload(self):
+        if len(self.stack) < 1 :
+            raise Exception("Stack underflow")
+        loc = self.stack.pop()
+        val = self.storage.get(loc,0)
+        self.stack.append(val)
+
         
     def run(self):
         while self.pc < len(self.code):
@@ -369,11 +385,16 @@ class EVM :
                 self.mload()
             elif op == Code.MSIZE:
                 self.msize()
+            elif op == Code.SLOAD:
+                self.sload()
+            elif op == Code.SSTORE:
+                self.sstore()
 
             
 
 # code = b'\x60\x02\x60\x01\x60\x01\x1b\x1b' # result is 8 
-code = b'\x60\x02\x60\x20\x52\x60\x20\x51' # result is 8 
+code = b'\x60\x02\x60\x20\x55\x60\x20\x54' 
 evm = EVM(code=code)
 evm.run()
 print(evm.stack)
+print(evm.storage)
