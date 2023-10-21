@@ -34,6 +34,22 @@ SHL = 0X1B
 SHR = 0X1C
 SHA = 0X1D
 
+#-----------------区块信息指令-----------------
+# // 0x40 range - block operations.
+BLOCKHASH = 0x40
+COINBASE  = 0x41
+TIMESTAMP = 0x42
+NUMBER    = 0x43
+DIFFICULTY   = 0x44
+RANDOM    = 0x44 # Same as DIFFICULTY
+PREVRANDAO   = 0x44 # Same as DIFFICULTY
+GASLIMIT  = 0x45
+CHAINID   = 0x46
+SELFBALANCE  = 0x47
+BASEFEE   = 0x48
+BLOBHASH  = 0x49
+BLOBBASEFEE  = 0x4a
+ 
 #-----------------存储，执行 指令-----------------
 # 0x50 range - 'storage' and execution
 POP = 0X50
